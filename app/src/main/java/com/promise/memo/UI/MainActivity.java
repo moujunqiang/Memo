@@ -3,8 +3,11 @@ package com.promise.memo.UI;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -52,8 +55,10 @@ import com.promise.memo.DB.NoteDao;
 import com.promise.memo.DB.UserDao;
 import com.promise.memo.R;
 import com.promise.memo.Util.AlarmTimer;
+import com.promise.memo.Util.BroadCastUtil;
 import com.promise.memo.Util.EditTextClearTools;
 import com.promise.memo.Util.SpacesItemDecoration;
+import com.promise.memo.receiver.RemindService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -108,7 +113,10 @@ public class MainActivity extends AppCompatActivity
         initView();
         registerForContextMenu(rv_list_main);
         setCount();
-
+        //注册定时提醒休息的广播
+        BroadCastUtil.registerBroadCast(this, remindReceiver, new IntentFilter(
+                "com.uxin.RemindAction"));
+        startRemindTimer();
     }
 
     //获取当前用户头像
@@ -121,6 +129,16 @@ public class MainActivity extends AppCompatActivity
         } else {
             return getDrawable(R.mipmap.ic_logo);
         }
+    }
+
+    /**
+     * 开启护眼计时服务
+     */
+    void startRemindTimer() {
+        //多次调用只启动一个实例
+        Intent intent = new Intent(MainActivity.this, RemindService.class);
+        intent.putExtra("timeLenth", 20*60*1000);
+        startService(intent);
     }
 
     //设置抽屉菜单是否完成备忘录的数量
@@ -424,6 +442,45 @@ public class MainActivity extends AppCompatActivity
         }
         return false;
     }
+
+    /**
+     * 提醒休息的广播
+     */
+    private BroadcastReceiver remindReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null
+                    && intent.getAction().equals("com.uxin.RemindAction")) {
+
+                /* @setIcon 设置对话框图标
+                 * @setTitle 设置对话框标题
+                 * @setMessage 设置对话框消息提示
+                 * setXXX方法返回Dialog对象，因此可以链式设置属性
+                 */
+                final AlertDialog.Builder normalDialog =
+                        new AlertDialog.Builder(MainActivity.this);
+                normalDialog.setTitle("提醒");
+                normalDialog.setMessage("时间太长了，休息一下吧?");
+                normalDialog.setPositiveButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                normalDialog.setNegativeButton("关闭",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                // 显示
+                normalDialog.show();
+            }
+
+        }
+    };
 
     @Override
     protected void onResume() {

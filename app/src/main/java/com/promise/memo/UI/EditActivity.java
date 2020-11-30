@@ -194,12 +194,10 @@ public class EditActivity extends AppCompatActivity {
         note.setUpdateTime(noteupdateTime);
         if (calendar == null) {
             calendar = Calendar.getInstance();
-            note.setYear(calendar.get(Calendar.YEAR) + "");
-            note.setMonth((calendar.get(Calendar.MONTH) + 1) + "");
-            note.setDay(calendar.get(Calendar.DAY_OF_MONTH) + "");
-
         }
-
+        note.setYear(calendar.get(Calendar.YEAR) + "");
+        note.setMonth((calendar.get(Calendar.MONTH) + 1) + "");
+        note.setDay(calendar.get(Calendar.DAY_OF_MONTH) + "");
         note.setRemindTime(noteremindTime);
         note.setType(spinner.getSelectedItem().toString());
         note.setOwner(login_user);
